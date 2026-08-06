@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AuraLens — Image Gallery</title>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #0b1120;
+      color: #f1f5f9;
+      min-height: 100vh;
+      letter-spacing: -0.01em;
+      padding-top: 70px;
+    }
+
+    .container {
+      max-width: 1500px;
+      margin: 0 auto;
+      padding: 0 1.5rem;
+    }
+
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 1rem 3rem;
+      background-color: rgba(15, 23, 42, 0.95);
+      backdrop-filter: blur(10px);
+      position: fixed;
+      top: 0;
+      width: 100%;
+      z-index: 1000;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .nav-logo {
+      font-size: 1.5rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #38bdf8, #a78bfa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-decoration: none;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 2.5rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      color: #94a3b8;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.95rem;
+      transition: color 0.25s ease;
+    }
+
+    .nav-links a:hover {
+      color: #38bdf8;
+    }
+
+    section {
+      padding: 4rem 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    #home {
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 35vh;
+    }
+
+    #home h1 {
+      font-size: 3.5rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #38bdf8 0%, #a78bfa 50%, #f472b6 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 1rem;
+    }
+
+    #home p {
+      color: #94a3b8;
+      font-size: 1.2rem;
+      max-width: 700px;
+    }
+
+    .filter-container {
+      display: flex;
+      justify-content: center;
+      gap: 0.6rem;
+      flex-wrap: wrap;
+      margin-bottom: 2.5rem;
+    }
+
+    .filter-btn {
+      background-color: #1e293b;
+      color: #cbd5e1;
+      border: 1px solid #334155;
+      padding: 0.6rem 1.3rem;
+      border-radius: 9999px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 0.9rem;
+      transition: all 0.25s ease;
+    }
+
+    .filter-btn:hover {
+      background-color: #334155;
+      color: #ffffff;
+    }
+
+    .filter-btn.active {
+      background-color: #38bdf8;
+      color: #0f172a;
+      border-color: #38bdf8;
+      box-shadow: 0 4px 14px rgba(56, 189, 248, 0.4);
+    }
+
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.25rem;
+    }
+
+    .gallery-item {
+      position: relative;
+      border-radius: 14px;
+      overflow: hidden;
+      background-color: #1e293b;
+      aspect-ratio: 4 / 3;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+      cursor: pointer;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .gallery-item:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 16px 24px rgba(0, 0, 0, 0.5);
+    }
+
+    .gallery-item img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.5s ease;
+    }
+
+    .gallery-item:hover img {
+      transform: scale(1.08);
+    }
+
+    .overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(11, 17, 32, 0.9) 0%, rgba(11, 17, 32, 0.2) 60%, transparent 100%);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 1.25rem;
+    }
+
+    .gallery-item:hover .overlay {
+      opacity: 1;
+    }
+
+    .overlay h3 {
+      font-size: 1.05rem;
+      color: #ffffff;
+    }
+
+    .overlay p {
+      font-size: 0.8rem;
+      color: #38bdf8;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    #about-content {
+      max-width: 800px;
+      margin: 0 auto;
+      text-align: center;
+      line-height: 1.8;
+      color: #cbd5e1;
+    }
+
+    #about-content h2 {
+      color: #f1f5f9;
+      margin-bottom: 1rem;
+      font-size: 2rem;
+    }
+
+    .contact-wrapper {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 3rem;
+      max-width: 1000px;
+      margin: 0 auto;
+      align-items: center;
+    }
+
+    .contact-info h2 {
+      color: #f1f5f9;
+      margin-bottom: 1rem;
+      font-size: 2rem;
+    }
+
+    .contact-info p {
+      color: #cbd5e1;
+      margin-bottom: 1.5rem;
+      line-height: 1.6;
+    }
+
+    .contact-form {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .contact-form input, .contact-form textarea {
+      padding: 0.9rem;
+      background-color: #0b1120;
+      border: 1px solid #334155;
+      border-radius: 8px;
+      color: #f1f5f9;
+      font-family: inherit;
+    }
+
+    .contact-form input:focus, .contact-form textarea:focus {
+      border-color: #38bdf8;
+      outline: none;
+    }
+
+    .submit-btn {
+      padding: 0.9rem;
+      background-color: #38bdf8;
+      color: #0f172a;
+      border: none;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background-color 0.2s;
+    }
+
+    .submit-btn:hover {
+      background-color: #a78bfa;
+    }
+
+    .lightbox {
+      position: fixed;
+      inset: 0;
+      background-color: rgba(7, 10, 19, 0.96);
+      backdrop-filter: blur(10px);
+      z-index: 2000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+    }
+
+    .lightbox.active {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .lightbox-content {
+      position: relative;
+      max-width: 90vw;
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .lightbox-content img {
+      max-width: 100%;
+      max-height: 75vh;
+      border-radius: 12px;
+      object-fit: contain;
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.8);
+    }
+
+    .lightbox-caption {
+      margin-top: 1rem;
+      color: #f1f5f9;
+      font-size: 1.2rem;
+      font-weight: 600;
+    }
+
+    .close-btn {
+      position: absolute;
+      top: -45px;
+      right: 0;
+      background: none;
+      border: none;
+      color: #94a3b8;
+      font-size: 2.5rem;
+      cursor: pointer;
+    }
+
+    .close-btn:hover { color: #f43f5e; }
+
+    .nav-btn {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background-color: rgba(30, 41, 59, 0.9);
+      color: #f1f5f9;
+      border: 1px solid #475569;
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      cursor: pointer;
+      font-size: 1.4rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .nav-btn:hover {
+      background-color: #38bdf8;
+      color: #0f172a;
+    }
+
+    .prev-btn { left: -60px; }
+    .next-btn { right: -60px; }
+
+    @media (max-width: 768px) {
+      #home h1 { font-size: 2.2rem; }
+      .nav-links { gap: 1rem; }
+      .contact-wrapper { grid-template-columns: 1fr; }
+      .prev-btn { left: 10px; }
+      .next-btn { right: 10px; }
+    }
+  </style>
+</head>
+<body>
+
+  <nav class="navbar">
+    <a href="#home" class="nav-logo">AuraLens</a>
+    <ul class="nav-links">
+      <li><a href="#home">Home</a></li>
+      <li><a href="#gallery-section">Gallery</a></li>
+      <li><a href="#about">About</a></li>
+      <li><a href="#contact">Contacts</a></li>
+    </ul>
+  </nav>
+
+  <div class="container">
+
+    <section id="home">
+      <h1>Explore Visual Stories</h1>
+      <p>Browse through categorized high-resolution photography with instant filtering.</p>
+    </section>
+
+    <section id="gallery-section">
+      <div class="filter-container" id="filterContainer">
+        <button class="filter-btn active" data-filter="all">All</button>
+        <button class="filter-btn" data-filter="nature">Nature</button>
+        <button class="filter-btn" data-filter="wildlife">Wildlife</button>
+        <button class="filter-btn" data-filter="space">Space</button>
+        <button class="filter-btn" data-filter="games">Games & Tech</button>
+        <button class="filter-btn" data-filter="travel">Travel</button>
+        <button class="filter-btn" data-filter="food">Food</button>
+        <button class="filter-btn" data-filter="architecture">Architecture</button>
+        <button class="filter-btn" data-filter="cars">Cars</button>
+        <button class="filter-btn" data-filter="sports">Sports</button>
+        <button class="filter-btn" data-filter="fashion">Fashion</button>
+      </div>
+
+      <div class="gallery-grid" id="gallery">
+
+        <!-- NATURE -->
+        <div class="gallery-item" data-category="nature">
+          <img src="https://picsum.photos/id/1018/800/600" alt="Alpine Mountain" onerror="this.src='https://picsum.photos/800/600?random=1'">
+          <div class="overlay"><h3>Alpine Mountain</h3><p>Nature</p></div>
+        </div>
+        <div class="gallery-item" data-category="nature">
+          <img src="https://picsum.photos/id/1015/800/600" alt="River Valley" onerror="this.src='https://picsum.photos/800/600?random=2'">
+          <div class="overlay"><h3>River Valley</h3><p>Nature</p></div>
+        </div>
+        <div class="gallery-item" data-category="nature">
+          <img src="https://picsum.photos/id/1043/800/600" alt="Forest Pathway" onerror="this.src='https://picsum.photos/800/600?random=3'">
+          <div class="overlay"><h3>Misty Forest</h3><p>Nature</p></div>
+        </div>
+        <div class="gallery-item" data-category="nature">
+          <img src="https://picsum.photos/id/1039/800/600" alt="Waterfall" onerror="this.src='https://picsum.photos/800/600?random=4'">
+          <div class="overlay"><h3>Cascading Falls</h3><p>Nature</p></div>
+        </div>
+
+        <!-- WILDLIFE -->
+        <div class="gallery-item" data-category="wildlife">
+          <img src="https://picsum.photos/id/1025/800/600" alt="Wild Dog" onerror="this.src='https://picsum.photos/800/600?random=5'">
+          <div class="overlay"><h3>Wild Canine</h3><p>Wildlife</p></div>
+        </div>
+        <div class="gallery-item" data-category="wildlife">
+          <img src="https://picsum.photos/id/1074/800/600" alt="Lion" onerror="this.src='https://picsum.photos/800/600?random=6'">
+          <div class="overlay"><h3>Savannah Lion</h3><p>Wildlife</p></div>
+        </div>
+        <div class="gallery-item" data-category="wildlife">
+          <img src="https://picsum.photos/id/1084/800/600" alt="Walrus" onerror="this.src='https://picsum.photos/800/600?random=7'">
+          <div class="overlay"><h3>Arctic Wildlife</h3><p>Wildlife</p></div>
+        </div>
+        <div class="gallery-item" data-category="wildlife">
+          <img src="https://picsum.photos/id/593/800/600" alt="Tiger" onerror="this.src='https://picsum.photos/800/600?random=8'">
+          <div class="overlay"><h3>Wild Tiger</h3><p>Wildlife</p></div>
+        </div>
+
+        <!-- SPACE -->
+        <div class="gallery-item" data-category="space">
+          <img src="https://picsum.photos/id/1002/800/600" alt="Starry Night" onerror="this.src='https://picsum.photos/800/600?random=9'">
+          <div class="overlay"><h3>Starry Night Sky</h3><p>Space</p></div>
+        </div>
+        <div class="gallery-item" data-category="space">
+          <img src="https://picsum.photos/id/903/800/600" alt="Cosmic View" onerror="this.src='https://picsum.photos/800/600?random=10'">
+          <div class="overlay"><h3>Cosmic Galaxy</h3><p>Space</p></div>
+        </div>
+        <div class="gallery-item" data-category="space">
+          <img src="https://picsum.photos/id/964/800/600" alt="Deep Sky" onerror="this.src='https://picsum.photos/800/600?random=11'">
+          <div class="overlay"><h3>Deep Cosmos</h3><p>Space</p></div>
+        </div>
+
+        <!-- GAMES & TECH -->
+        <div class="gallery-item" data-category="games">
+          <img src="https://picsum.photos/id/0/800/600" alt="Laptop Tech Setup" onerror="this.src='https://picsum.photos/800/600?random=12'">
+          <div class="overlay"><h3>Developer Workspace</h3><p>Games & Tech</p></div>
+        </div>
+        <div class="gallery-item" data-category="games">
+          <img src="https://picsum.photos/id/180/800/600" alt="Tech Rig" onerror="this.src='https://picsum.photos/800/600?random=13'">
+          <div class="overlay"><h3>Digital Station</h3><p>Games & Tech</p></div>
+        </div>
+        <div class="gallery-item" data-category="games">
+          <img src="https://picsum.photos/id/96/800/600" alt="Gaming Keyboard" onerror="this.src='https://picsum.photos/800/600?random=14'">
+          <div class="overlay"><h3>RGB Hardware</h3><p>Games & Tech</p></div>
+        </div>
+
+        <!-- TRAVEL -->
+        <div class="gallery-item" data-category="travel">
+          <img src="https://picsum.photos/id/1036/800/600" alt="Snowy Mountains" onerror="this.src='https://picsum.photos/800/600?random=15'">
+          <div class="overlay"><h3>Alpine Resort</h3><p>Travel</p></div>
+        </div>
+        <div class="gallery-item" data-category="travel">
+          <img src="https://picsum.photos/id/1040/800/600" alt="Castle Architecture" onerror="this.src='https://picsum.photos/800/600?random=16'">
+          <div class="overlay"><h3>European Castle</h3><p>Travel</p></div>
+        </div>
+        <div class="gallery-item" data-category="travel">
+          <img src="https://picsum.photos/id/1011/800/600" alt="Tropical Beach" onerror="this.src='https://picsum.photos/800/600?random=17'">
+          <div class="overlay"><h3>Island Getaway</h3><p>Travel</p></div>
+        </div>
+
+        <!-- FOOD -->
+        <div class="gallery-item" data-category="food">
+          <img src="https://picsum.photos/id/1080/800/600" alt="Fruit Dessert" onerror="this.src='https://picsum.photos/800/600?random=18'">
+          <div class="overlay"><h3>Fresh Fruit Bowl</h3><p>Food</p></div>
+        </div>
+        <div class="gallery-item" data-category="food">
+          <img src="https://picsum.photos/id/1060/800/600" alt="Artisan Coffee" onerror="this.src='https://picsum.photos/800/600?random=19'">
+          <div class="overlay"><h3>Morning Espresso</h3><p>Food</p></div>
+        </div>
+        <div class="gallery-item" data-category="food">
+          <img src="https://picsum.photos/id/75/800/600" alt="Fresh Vegetables" onerror="this.src='https://picsum.photos/800/600?random=20'">
+          <div class="overlay"><h3>Gourmet Salad</h3><p>Food</p></div>
+        </div>
+
+        <!-- ARCHITECTURE -->
+        <div class="gallery-item" data-category="architecture">
+          <img src="https://picsum.photos/id/1076/800/600" alt="Modern Building" onerror="this.src='https://picsum.photos/800/600?random=21'">
+          <div class="overlay"><h3>Modern Skyscraper</h3><p>Architecture</p></div>
+        </div>
+        <div class="gallery-item" data-category="architecture">
+          <img src="https://picsum.photos/id/1029/800/600" alt="City Bridge" onerror="this.src='https://picsum.photos/800/600?random=22'">
+          <div class="overlay"><h3>City Suspension Bridge</h3><p>Architecture</p></div>
+        </div>
+        <div class="gallery-item" data-category="architecture">
+          <img src="https://picsum.photos/id/1068/800/600" alt="Modern Villa" onerror="this.src='https://picsum.photos/800/600?random=23'">
+          <div class="overlay"><h3>Minimalist Structure</h3><p>Architecture</p></div>
+        </div>
+
+        <!-- CARS -->
+        <div class="gallery-item" data-category="cars">
+          <img src="https://picsum.photos/id/111/800/600" alt="Vintage Car" onerror="this.src='https://picsum.photos/800/600?random=24'">
+          <div class="overlay"><h3>Classic Vintage Automobile</h3><p>Cars</p></div>
+        </div>
+        <div class="gallery-item" data-category="cars">
+          <img src="https://picsum.photos/id/133/800/600" alt="Sports Vehicle" onerror="this.src='https://picsum.photos/800/600?random=25'">
+          <div class="overlay"><h3>Performance Sports Car</h3><p>Cars</p></div>
+        </div>
+
+        <!-- SPORTS (UPDATED HD DIRECT LINKS) -->
+        <div class="gallery-item" data-category="sports">
+          <img src="https://images.unsplash.com/photo-1546519638-68e109498ffc?w=800&auto=format&fit=crop" alt="Basketball Game" onerror="this.src='https://picsum.photos/800/600?random=26'">
+          <div class="overlay"><h3>Basketball Action</h3><p>Sports</p></div>
+        </div>
+        <div class="gallery-item" data-category="sports">
+          <img src="https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=800&auto=format&fit=crop" alt="Soccer Football" onerror="this.src='https://picsum.photos/800/600?random=27'">
+          <div class="overlay"><h3>Soccer Championship</h3><p>Sports</p></div>
+        </div>
+        <div class="gallery-item" data-category="sports">
+          <img src="https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=800&auto=format&fit=crop" alt="Track Running" onerror="this.src='https://picsum.photos/800/600?random=28'">
+          <div class="overlay"><h3>Track & Field Athlete</h3><p>Sports</p></div>
+        </div>
+        <div class="gallery-item" data-category="sports">
+          <img src="https://images.unsplash.com/photo-1622279457486-62dcc4a431d6?w=800&auto=format&fit=crop" alt="Tennis Match" onerror="this.src='https://picsum.photos/800/600?random=29'">
+          <div class="overlay"><h3>Tennis Serve</h3><p>Sports</p></div>
+        </div>
+
+        <!-- FASHION -->
+        <div class="gallery-item" data-category="fashion">
+          <img src="https://picsum.photos/id/338/800/600" alt="Modern Model" onerror="this.src='https://picsum.photos/800/600?random=30'">
+          <div class="overlay"><h3>Contemporary Fashion</h3><p>Fashion</p></div>
+        </div>
+        <div class="gallery-item" data-category="fashion">
+          <img src="https://picsum.photos/id/64/800/600" alt="Street Style" onerror="this.src='https://picsum.photos/800/600?random=31'">
+          <div class="overlay"><h3>Urban Style</h3><p>Fashion</p></div>
+        </div>
+
+      </div>
+    </section>
+
+    <section id="about">
+      <div id="about-content">
+        <h2>About AuraLens</h2>
+        <p>AuraLens is an interactive gallery application built with semantic HTML5, CSS grid/flexbox, and vanilla JavaScript. Features dynamic filtering and modal lightbox navigation.</p>
+      </div>
+    </section>
+
+    <section id="contact">
+      <div class="contact-wrapper">
+        <div class="contact-info">
+          <h2>Contact CodeAlpha</h2>
+          <p>We are a software development team dedicated to providing innovative solutions and hands-on learning experiences for developers.</p>
+          <div style="margin-top: 1.5rem; line-height: 2; color: #cbd5e1;">
+            <p><strong>Website:</strong> <a href="https://www.codealpha.tech" target="_blank" style="color: #38bdf8; text-decoration: none;">www.codealpha.tech</a></p>
+            <p><strong>LinkedIn:</strong> <a href="https://www.linkedin.com/company/codealpha" target="_blank" style="color: #38bdf8; text-decoration: none;">CodeAlpha LinkedIn Page</a></p>
+            <p><strong>Location:</strong> India</p>
+          </div>
+        </div>
+        <form class="contact-form">
+          <input type="text" placeholder="Your Name" required>
+          <input type="email" placeholder="Your Email" required>
+          <textarea placeholder="Your Message for CodeAlpha Team..." rows="4" required></textarea>
+          <button type="submit" class="submit-btn">Send Message</button>
+        </form>
+      </div>
+    </section>
+
+  </div>
+
+  <div class="lightbox" id="lightbox">
+    <div class="lightbox-content">
+      <button class="close-btn" id="closeBtn">&times;</button>
+      <button class="nav-btn prev-btn" id="prevBtn">&#10094;</button>
+      <img src="" alt="" id="lightboxImg">
+      <div class="lightbox-caption" id="lightboxCaption"></div>
+      <button class="nav-btn next-btn" id="nextBtn">&#10095;</button>
+    </div>
+  </div>
+
+  <script>
+    const galleryItems = document.querySelectorAll('.gallery-item');
+    const filterContainer = document.getElementById('filterContainer');
+    const lightbox = document.getElementById('lightbox');
+    const lightboxImg = document.getElementById('lightboxImg');
+    const lightboxCaption = document.getElementById('lightboxCaption');
+    const closeBtn = document.getElementById('closeBtn');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+
+    let visibleItems = [];
+    let currentIndex = 0;
+
+    filterContainer.addEventListener('click', (e) => {
+      const btn = e.target.closest('.filter-btn');
+      if (!btn) return;
+
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+
+      const filterValue = btn.getAttribute('data-filter');
+
+      galleryItems.forEach(item => {
+        const category = item.getAttribute('data-category');
+        if (filterValue === 'all' || filterValue === category) {
+          item.style.display = 'block';
+        } else {
+          item.style.display = 'none';
+        }
+      });
+
+      updateVisibleItems();
+    });
+
+    function updateVisibleItems() {
+      visibleItems = Array.from(galleryItems).filter(item => item.style.display !== 'none');
+    }
+
+    galleryItems.forEach(item => {
+      item.addEventListener('click', () => {
+        updateVisibleItems();
+        currentIndex = visibleItems.indexOf(item);
+        openLightbox();
+      });
+    });
+
+    function openLightbox() {
+      const currentItem = visibleItems[currentIndex];
+      const img = currentItem.querySelector('img');
+      const title = currentItem.querySelector('h3').innerText;
+
+      lightboxImg.src = img.src;
+      lightboxImg.alt = img.alt;
+      lightboxCaption.innerText = title;
+      lightbox.classList.add('active');
+    }
+
+    function closeLightbox() {
+      lightbox.classList.remove('active');
+    }
+
+    function showNext() {
+      currentIndex = (currentIndex + 1) % visibleItems.length;
+      openLightbox();
+    }
+
+    function showPrev() {
+      currentIndex = (currentIndex - 1 + visibleItems.length) % visibleItems.length;
+      openLightbox();
+    }
+
+    closeBtn.addEventListener('click', closeLightbox);
+    nextBtn.addEventListener('click', showNext);
+    prevBtn.addEventListener('click', showPrev);
+
+    lightbox.addEventListener('click', (e) => {
+      if (e.target === lightbox) closeLightbox();
+    });
+
+    document.addEventListener('keydown', (e) => {
+      if (!lightbox.classList.contains('active')) return;
+      if (e.key === 'Escape') closeLightbox();
+      if (e.key === 'ArrowRight') showNext();
+      if (e.key === 'ArrowLeft') showPrev();
+    });
+
+    updateVisibleItems();
+  </script>
+</body>
+</html>
